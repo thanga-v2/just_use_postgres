@@ -1,0 +1,10 @@
+docker run -it python:3.13.11-slim
+
+docker run -it  --entrypoint=bash python:3.13.11-slim
+
+> docker run -it  --entrypoint=bash python:3.13.11-slim
+root@c9c7ef904bb7:/# ls
+bin  boot  dev  etc  home  lib  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@c9c7ef904bb7:/# python -V
+Python 3.13.11
+root@c9c7ef904bb7:/# 
