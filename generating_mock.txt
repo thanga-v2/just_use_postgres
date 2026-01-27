@@ -1,0 +1,242 @@
+create table trades(
+    tardeid bigint,
+    buyder_id bigint,
+    symbol text,
+    order_quantity integer,
+    bid_price numeric(5,2),
+    order_time timestamp
+);
+
+thanga=# select * from trades;
+ tardeid | buyder_id | symbol | order_quantity | bid_price | order_time 
+---------+-----------+--------+----------------+-----------+------------
+(0 rows)
+
+
+generate series function
+
+thanga=# select generate_series(10,15)
+
+thanga-# ;
+ generate_series 
+-----------------
+              10
+              11
+              12
+              13
+              14
+              15
+(6 rows)
+
+
+
+thanga=# select generate_series(10,25,2);
+
+ generate_series 
+-----------------
+              10
+              12
+              14
+              16
+              18
+              20
+              22
+              24
+(8 rows)
+
+thanga=# 
+
+
+
+thanga=# select generate_series(10,15) as my_random_id;
+
+ my_random_id 
+--------------
+           10
+           11
+           12
+           13
+           14
+           15
+(6 rows)
+
+thanga=# 
+
+
+select id, random(1,100) as buyer_id from generate_series(1,12) as id;
+
+
+thanga=# select id, random(1,100) as buyer_id from generate_series(1,12) as id;
+ id | buyer_id 
+----+----------
+  1 |       16
+  2 |       85
+  3 |       14
+  4 |       44
+  5 |       77
+  6 |       74
+  7 |       23
+  8 |       10
+  9 |        9
+ 10 |       15
+ 11 |       39
+ 12 |       19
+(12 rows)
+
+thanga=# 
+
+
+generating random texts;
+
+select id, (array['BTC','ETH','SOL', 'VE','TOR','XRPL'])[random(1,6)] AS symbol from generate_series(1,9) as id;
+
+thanga=# select id, (array['BTC','ETH','SOL', 'VE','TOR','XRPL'])[random(1,6)] AS symbol from generate_series(1,9) as id;
+
+ id | symbol 
+----+--------
+  1 | BTC
+  2 | SOL
+  3 | BTC
+  4 | XRPL
+  5 | BTC
+  6 | ETH
+  7 | VE
+  8 | XRPL
+  9 | XRPL
+(9 rows)
+
+thanga=# 
+
+
+Inserting 1000 rows -
+
+
+base template -
+
+Insert into trades (
+    tradeid,
+    buyer_id,
+    symbol,
+    order_quantity,
+    bid_price,
+    order_time
+
+)
+Select 
+tradeid,
+from generate_series(1,1000) as tradeid;
+
+
+Insert into trades (
+    tardeid,
+    buyder_id,
+    symbol,
+    order_quantity,
+    bid_price,
+    order_time
+
+)
+Select 
+tardeid,
+random(1,700) as buyder_id,
+(array['TXA', 'DxB', 'RYH', 'NY' , 'CLF'])[random(1,5)] as symbol,
+random(1,15) as order_quantity,
+round(random(500.00, 10000.00)) as bid_price,
+now() as order_time
+from generate_series(1,1000) as tardeid;
+
+INSERT INTO trades (
+    tardeid,
+    buyder_id,
+    symbol,
+    order_quantity,
+    bid_price,
+    order_time
+)
+SELECT 
+    tardeid,
+    random(1,700) as buyder_id,
+    (array['TXA', 'DxB', 'RYH', 'NY', 'CLF'])[random(1,5)] as symbol,
+    random(1,15) as order_quantity,
+    round(random(500.00, 999.99), 2) as bid_price,  -- Adjusted to fit NUMERIC(5,2)
+    now() as order_time
+FROM generate_series(1,1000) as tardeid;
+
+
+
+select count(*) from trades where symbol = 'TXA';
+
+select max(bid_price) from trades where symbol = 'TXA';
+
+thanga=# select max(bid_price) from trades group by symbol;
+
+  max   
+--------
+ 999.11
+ 998.57
+ 992.83
+ 997.78
+ 998.98
+(5 rows)
+
+thanga=# select symbol, max(bid_price) from trades group by symbol;
+
+ symbol |  max   
+--------+--------
+ NY     | 999.11
+ DxB    | 998.57
+ RYH    | 992.83
+ CLF    | 997.78
+ TXA    | 998.98
+(5 rows)
+
+
+select buyder_id, bid_price from tardes limit 10;
+
+thanga=# select buyder_id, SUM(bid_price * order_quantity) as TotalValue from trades group by buyder_id limit 10;
+
+select buyder_id, 
+    SUM(bid_price * order_quantity) as TotalValue  
+    from trades 
+    group by buyder_id 
+    limit 10;
+
+ buyder_id | totalvalue 
+-----------+------------
+       184 |   24184.03
+       477 |    4944.65
+       652 |    3122.55
+       550 |   29305.15
+       394 |    9811.21
+       272 |   10881.90
+        70 |   10857.38
+       190 |   23443.55
+       350 |    5034.10
+       539 |    4051.03
+(10 rows)
+
+select buyder_id, 
+    SUM(bid_price * order_quantity) as TotalValue 
+    from trades 
+    group by buyder_id 
+    order by totalvalue DESC 
+    limit 10;
+
+
+
+
+thanga=# select buyder_id, SUM(bid_price * order_quantity) as TotalValue from trades group by buyder_id order by totalvalue DESC lim
+it 10;
+ buyder_id | totalvalue 
+-----------+------------
+       542 |   51467.65
+       625 |   40796.17
+       226 |   39570.91
+       594 |   37401.97
+        33 |   36092.36
+       603 |   35220.06
+        98 |   33718.55
+       691 |   33259.38
+       335 |   32127.05
+        68 |   32096.38
+(10 rows)

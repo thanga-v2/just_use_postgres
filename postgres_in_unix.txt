@@ -3,8 +3,104 @@ docker volume create postgres-volume
 / advisable to keept a string password in a seperate file /
 
 docker run --name postgres \
--e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password \
+-e POSTGRES_USER=thanga -e POSTGRES_PASSWORD=thanga321 \
 -p 5432:5432 \
 -v postgres-volume:/var/lib/postgresql/data \
 -d postgres:17.2
-If you’re a Windows user,
+
+checking the status
+
+docker container ls
+
+docker container ls -f name=postgres
+
+CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
+51757a02cffc   postgres:17.2   "docker-entrypoint.s…"   3 minutes ago   Up 3 minutes   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   postgres
+
+logs
+
+docker logs postgres
+
+(base) thangaraj@Admins-MacBook-Pro just_use_postgres % docker logs postgres
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "en_US.utf8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+fixing permissions on existing directory /var/lib/postgresql/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+syncing data to disk ... ok
+
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/data -l logfile start
+
+waiting for server to start....2026-01-27 05:50:12.395 UTC [48] LOG:  starting PostgreSQL 17.2 (Debian 17.2-1.pgdg120+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+2026-01-27 05:50:12.396 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-01-27 05:50:12.398 UTC [51] LOG:  database system was shut down at 2026-01-27 05:50:12 UTC
+2026-01-27 05:50:12.399 UTC [48] LOG:  database system is ready to accept connections
+ done
+server started
+CREATE DATABASE
+
+
+/usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+
+waiting for server to shut down....2026-01-27 05:50:12.544 UTC [48] LOG:  received fast shutdown request
+2026-01-27 05:50:12.544 UTC [48] LOG:  aborting any active transactions
+2026-01-27 05:50:12.545 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+2026-01-27 05:50:12.545 UTC [49] LOG:  shutting down
+2026-01-27 05:50:12.545 UTC [49] LOG:  checkpoint starting: shutdown immediate
+2026-01-27 05:50:12.563 UTC [49] LOG:  checkpoint complete: wrote 921 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.012 s, total=0.018 s; sync files=301, longest=0.003 s, average=0.001 s; distance=4238 kB, estimate=4238 kB; lsn=0/1908948, redo lsn=0/1908948
+2026-01-27 05:50:12.564 UTC [48] LOG:  database system is shut down
+ done
+server stopped
+
+PostgreSQL init process complete; ready for start up.
+
+2026-01-27 05:50:12.659 UTC [1] LOG:  starting PostgreSQL 17.2 (Debian 17.2-1.pgdg120+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+2026-01-27 05:50:12.659 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-01-27 05:50:12.659 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-01-27 05:50:12.660 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-01-27 05:50:12.661 UTC [64] LOG:  database system was shut down at 2026-01-27 05:50:12 UTC
+2026-01-27 05:50:12.663 UTC [1] LOG:  database system is ready to accept connections
+
+
+connecting with psql
+
+docker exec -it postgres psql -U thanga
+
+(base) thangaraj@Admins-MacBook-Pro just_use_postgres % docker exec -it postgres psql -U thanga
+psql (17.2 (Debian 17.2-1.pgdg120+1))
+Type "help" for help.
+
+
+use '\conninfo' to get the details
+thanga=# \conninfo
+You are connected to database "thanga" as user "thanga" via socket in "/var/run/postgresql" at port "5432".
+thanga=# clear
+thanga-# 
+
+use '\q' to quit
+
+use '\d' to know about tables, databases, indices.
+
+thanga=# \d
+Did not find any relations.
+thanga=# 
+
+
