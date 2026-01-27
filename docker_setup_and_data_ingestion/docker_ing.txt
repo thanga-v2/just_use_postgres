@@ -34,5 +34,18 @@ Using volumes.
 
 docker run -it  --entrypoint=bash -v "$(pwd)/test:/thanga/" python:3.13.11-slim
 
+
+-v host:container
+
+
 -v "$(pwd)/test:/thanga/" -> mounts whatever the data available in  the test directory to thanga directory inside the container.
+
+
+
+
+
+
+to enable read-only inside the container
+
+-v "$(pwd)/test:/thanga:ro"
 
