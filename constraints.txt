@@ -1,11 +1,254 @@
 
 
-\d product.catalog
 
-ALTER TABLE product.catalog
-ADD CONSTRAINT catalog_price_check CHECK (price > 0);
 
-UPDATE products.catalog SET price = -16 WHERE name = 'Morning Glory';
+create database test_constraints;
 
+\c test_constraints
+
+
+
+/ Primary Key Constraint and Not Null Constraint / 
+
+Primary Key is a combination of not null and unique Constraint.
+
+create table test_basic(
+id SERIAL PRIMARY KEY,
+employee_id int NOT NULL
+);
+
+Insert into test_basic Values(
+(1234),
+(5678)
+);
+
+test_constraints=# Insert into test_basic Values(
+(1234),
+(5679)
+);
+ERROR:  duplicate key value violates unique constraint "test_basic_pkey"
+DETAIL:  Key (id)=(1234) already exists.
+
+
+Insert into test_basic(employee_id) values 
+(123),
+(4),
+(5),
+(96),
+(0907),
+(18),
+(1099);
+
+
+
+/ check constraint /
+
+create table test_check_constraint(
+id SERIAL PRIMARY KEY,
+employee_id int NOT NULL,
+salary int CHECK (salary>=25000)
+);
+
+
+insert into test_check_constraint(employee_id, salary) values
+(12567,909090),
+(13,8908948),
+(1987,7112356),
+(1884,712094);
+
+select * from test_check_constraint;
+
+test_constraints=# select * from test_check_constraint;
+ id | employee_id | salary  
+----+-------------+---------
+  1 |       12567 |  909090
+  2 |          13 | 8908948
+  3 |        1987 | 7112356
+  4 |        1884 |  712094
+(4 rows)
+
+insert into test_check_constraint(employee_id, salary) values
+(18989,20000),
+(131,8298);
+
+test_constraints=# insert into test_check_constraint(employee_id, salary) values
+(18989,20000),
+(131,8298);
+ERROR:  new row for relation "test_check_constraint" violates check constraint "test_check_constraint_salary_check"
+DETAIL:  Failing row contains (5, 18989, 20000).
+test_constraints=# 
+
+
+/ update /
+
+update test_check_constraint set salary=98000 where employee_id=13;
+
+test_constraints=# update test_check_constraint set salary=98000 where employee_id=13;
+UPDATE 1
+
+test_constraints=# select * from test_check_constraint;
+
+ id | employee_id | salary  
+----+-------------+---------
+  1 |       12567 |  909090
+  3 |        1987 | 7112356
+  4 |        1884 |  712094
+  2 |          13 |   98000
+(4 rows)
+
+test_constraints=# update test_check_constraint set salary=24999 where employee_id=13;
+ERROR:  new row for relation "test_check_constraint" violates check constraint "test_check_constraint_salary_check"
+DETAIL:  Failing row contains (2, 13, 24999).
+test_constraints=# 
+
+
+/ alter table by adding a constraint / 
+
+alter table test_check_constraint
+add constraint new_salary_updated check (salary >= 50000);
+
+insert into test_check_constraint(employee_id, salary) values
+(1987,35000);
+
+test_constraints=# insert into test_check_constraint(employee_id, salary) values
+(1987,35000);
+
+ERROR:  new row for relation "test_check_constraint" violates check constraint "new_salary_updated"
+DETAIL:  Failing row contains (6, 1987, 35000).
+
+
+
+
+
+
+/ foreign key /
+
+Creating a foreign key on product_id
+
+coffee_chain=# select * from reviews;
+ id | product_id | customer_id | review | rank 
+----+------------+-------------+--------+------
+(0 rows)
+
+coffee_chain=# select * from catalog;
+ id |           name           |                          description                          | category | price | stock_quantity 
+----+--------------------------+---------------------------------------------------------------+----------+-------+----------------
+  3 | Morning Glory            | A light roast with bright acidity and floral notes.           | coffee   | 13.99 |             30
+  4 | Sunrise Brew Co. Mug     | A ceramic mug with the Sunrise Brew Co. logo.                 | mug      |  9.99 |            100
+  5 | Sunrise Brew Co. T-Shirt | A soft cotton t-shirt with the Sunrise Brew Co. logo.         | t-shirt  | 19.99 |             25
+  1 | Sunrise Blend            | A smooth and balanced blend with notes of caramel and citrus. | coffee   | 11.54 |             50
+(4 rows)
+
+ALTER TABLE product.reviews
+ADD CONSTRAINT products_review_product_id_fk
+FOREIGN KEY (product_id) REFERENCES products.catalog(id);
+
+if we insert something which is not available as id in the catlog will throw an error.
+
+example : 
+
+insert into reviews (product_id,customer_id,review,rank) values
+(5,17789,'its excellent ! wow !', 2);
+
+coffee_chain=# insert into reviews (product_id,customer_id,review,rank) values
+(5,17789,'its excellent ! wow !', 2);
+
+INSERT 0 1
+
+coffee_chain=# select * from reviews;
+
+ id | product_id | customer_id |        review         | rank 
+----+------------+-------------+-----------------------+------
+  1 |          5 |       17789 | its excellent ! wow ! |    2
+(1 row)
+
+
+
+
+insert into reviews (product_id,customer_id,review,rank) values
+(6,1898,'not bad', 1);
+
+coffee_chain=# insert into reviews (product_id,customer_id,review,rank) values
+(6,1898,'not bad', 1);
+ERROR:  insert or update on table "reviews" violates foreign key constraint "products_review_product_id_fk"
+DETAIL:  Key (product_id)=(6) is not present in table "catalog".
+coffee_chain=# 
+
+
+
+coffee_chain=# \dn
+       List of schemas
+   Name   |       Owner       
+----------+-------------------
+ customer | thanga
+ product  | thanga
+ public   | pg_database_owner
+ sales    | thanga
+(4 rows)
+
+
+CREATE TABLE customer.accounts (
+id SERIAL PRIMARY KEY,
+name TEXT NOT NULL,
+email TEXT NOT NULL,
+passwd_hash TEXT NOT NULL
+);
+
+creating a foreign key on customer_id from reviews is mapped with account(id)
+
+ALTER TABLE product.reviews
+ADD CONSTRAINT products_review_customer_id_fk
+FOREIGN KEY (customer_id) REFERENCES customer.accounts(id);
+
+
+INSERT INTO customer.accounts (name, email, passwd_hash)
+VALUES
+('Alice Johnson', 'alice.johnson@example.com',
+'5f4dcc3b5aa765d61d8327deb882cf99'),
+('Bob Smith', 'bob.smith@example.com', 'd8578edf8458ce06fbc5bb76a58c5ca4'),
+('Charlie Brown', 'charlie.brown@example.com',
+'5f4dcc3b5aa765d61d8327deb882cf99');
+
+
+/ Adding deleted column as default. /
+
+ALTER TABLE customer.accounts
+ADD COLUMN deleted boolean DEFAULT false;
+
+offee_chain=# \d customer.accounts;
+                                  Table "customer.accounts"
+   Column    |  Type   | Collation | Nullable |                    Default                    
+-------------+---------+-----------+----------+-----------------------------------------------
+ id          | integer |           | not null | nextval('customer.accounts_id_seq'::regclass)
+ name        | text    |           | not null | 
+ email       | text    |           | not null | 
+ passwd_hash | text    |           | not null | 
+ deleted     | boolean |           |          | false
+Indexes:
+    "accounts_pkey" PRIMARY KEY, btree (id)
+
+coffee_chain=# select * from customer.accounts;
+ id |     name      |           email           |           passwd_hash            | deleted 
+----+---------------+---------------------------+----------------------------------+---------
+  1 | Alice Johnson | alice.johnson@example.com | 5f4dcc3b5aa765d61d8327deb882cf99 | f
+  2 | Bob Smith     | bob.smith@example.com     | d8578edf8458ce06fbc5bb76a58c5ca4 | f
+  3 | Charlie Brown | charlie.brown@example.com | 5f4dcc3b5aa765d61d8327deb882cf99 | f
+(3 rows)
+
+coffee_chain=# 
+
+/ assuming 1 user is deleting his account /
+
+UPDATE customer.accounts SET deleted = true WHERE id = 1;
+
+coffee_chain=# select * from customer.accounts;
+ id |     name      |           email           |           passwd_hash            | deleted 
+----+---------------+---------------------------+----------------------------------+---------
+  2 | Bob Smith     | bob.smith@example.com     | d8578edf8458ce06fbc5bb76a58c5ca4 | f
+  3 | Charlie Brown | charlie.brown@example.com | 5f4dcc3b5aa765d61d8327deb882cf99 | f
+  1 | Alice Johnson | alice.johnson@example.com | 5f4dcc3b5aa765d61d8327deb882cf99 | t
+(3 rows)
+
+coffee_chain=# 
 
 
