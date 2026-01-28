@@ -1,0 +1,11 @@
+
+
+\d product.catalog
+
+ALTER TABLE product.catalog
+ADD CONSTRAINT catalog_price_check CHECK (price > 0);
+
+UPDATE products.catalog SET price = -16 WHERE name = 'Morning Glory';
+
+
+

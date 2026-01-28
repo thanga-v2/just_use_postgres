@@ -1,0 +1,42 @@
+\l   – databases
+\dn  – schemas
+\dt  – tables
+\d+  – tables with size + description
+\d t – columns, types, indexes for table t
+
+
+to list the databases -
+
+thanga=# select datname from pg_database;
+
+   datname    
+--------------
+ postgres
+ thanga
+ template1
+ template0
+ coffee_chain
+ brewery
+(6 rows)
+
+
+
+How to switch between or connect to the databases ?
+
+
+\l or select datname from pg_dataabse;  -> to list the databases.
+
+\c Database_Name to switch to the database
+
+thanga=# \c coffee_chain
+
+You are now connected to database "coffee_chain" as user "thanga".
+coffee_chain=# 
+
+we can also include -d in the docker to connect to the data base 
+
+docker exec -it postgres psql -U postgres -d coffee_chain
+
+\dn -> to list schemas
+
+set search_path to schema_name; -> to swtch between schems.

@@ -1,0 +1,117 @@
+CREATE DATABASE coffee_chain;
+
+CREATE DATABASE brewery;
+
+
+schemas - collection of DB objects (such as tables) which is use full for grouping tables.
+
+coffee_chain=# \c coffee_chain
+You are now connected to database "coffee_chain" as user "thanga".
+
+coffee_chain=# create schema product;
+CREATE SCHEMA
+
+coffee_chain=# create schema sales;
+CREATE SCHEMA
+
+coffee_chain=# create schema customer;
+CREATE SCHEMA
+
+\dn to list schemas.
+
+\d is to list database objects
+
+to check which schema we are currently at -
+
+SHOW search_path;
+
+coffee_chain=# SHOW search_path;
+   search_path   
+-----------------
+ "$user", public
+
+ to switch schemas - 
+
+ SET search_path TO schema;
+
+coffee_chain=# SET search_path TO product;
+SET
+
+
+
+lets create a catalouge table -
+
+under the product schema.
+
+create table product.test(
+    id bigint,
+    name varchar
+);
+
+
+
+CREATE TABLE product.catalog (
+id SERIAL PRIMARY KEY,
+name VARCHAR (100) NOT NULL,
+description TEXT NOT NULL,
+category TEXT CHECK (category IN ('coffee', 'mug', 't-shirt')),
+price NUMERIC(10, 2),
+stock_quantity INT CHECK (stock_quantity >= 0)
+);
+
+
+CREATE TABLE product.reviews (
+id BIGSERIAL PRIMARY KEY,
+product_id INT,
+customer_id INT,
+review TEXT,
+rank SMALLINT
+);
+
+
+coffee_chain=# \d
+
+              List of relations
+ Schema  |      Name      |   Type   | Owner  
+---------+----------------+----------+--------
+ product | catalog        | table    | thanga
+ product | catalog_id_seq | sequence | thanga
+ product | reviews        | table    | thanga
+ product | reviews_id_seq | sequence | thanga
+ product | test           | table    | thanga
+(5 rows)
+
+
+
+INSERT INTO product.catalog
+(name, description, category, price, stock_quantity) VALUES
+('Sunrise Blend',
+'A smooth and balanced blend with notes of caramel and citrus.',
+'coffee', 14.99, 50),
+('Midnight Roast',
+'A dark roast with rich flavors of chocolate and toasted nuts.',
+'coffee', 16.99, 40),
+('Morning Glory',
+'A light roast with bright acidity and floral notes.',
+'coffee', 13.99, 30),
+('Sunrise Brew Co. Mug',
+'A ceramic mug with the Sunrise Brew Co. logo.',
+'mug', 9.99, 100),
+('Sunrise Brew Co. T-Shirt',
+'A soft cotton t-shirt with the Sunrise Brew Co. logo.',
+'t-shirt', 19.99, 25);
+
+SELECT id, name, stock_quantity FROM product.catalog;
+
+SELECT id, name, price FROM product.catalog
+WHERE category = 'coffee';
+
+select id from catalog where name = 'Sunrise Blend';
+
+update price = 13.67 from catalog where name='Sunrise Blend';
+
+UPDATE catalog SET price = 16.54 WHERE id = 1;
+
+UPDATE catalog SET price = 11.54 WHERE name = 'Sunrise Blend';
+
+DELETE catalog where id = 2;
