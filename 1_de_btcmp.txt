@@ -1,0 +1,224 @@
+
+ref - https://www.postgresql.org/docs/17/datatype.html
+
+Good. You feel the sting because you care. Now learn the medicine.
+
+
+
+1 - Create database de_bootcamp. 
+Read PostgreSQL docs: Data Types (numeric, text, timestamp, jsonb). 
+Create 3 tables: users, orders, products with proper constraints.
+
+Data Types -
+
+smallint - 2 bytes
+integer - 4 bytes
+bigint - 8 bytes
+decimal 
+numeric
+real - 6 decimal digits precision
+double precision - 15 decimal digits precision	
+smallserial
+serial
+bigserial
+
+Create database de_bootcamp;
+
+create table users (
+    name TEXT NOT NULL,
+    age smallint,
+    marital_status TEXT CHECK (marital_status in ('male','female')),
+    mailid TEXT
+);
+
+
+drop table users;
+
+create table users (
+    user_id serial PRIMARY KEY,
+    name TEXT NOT NULL check (length(name) >=2),
+    age smallint check (age<99),
+    marital_status VARCHAR(15) check (marital_status in ('married','single', 'DIVORCED','WIDOWED')),
+    mailid VARCHAR(255) not null unique,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    userstatus VARCHAR(10) DEFAULT 'active'
+);
+
+select * from users;
+
+
+
+insert into users(name,age,marital_status,mailid) values 
+('thanga',23,'married','gfhfgdsh@gfh.com');
+
+de_bootcamp=# insert into users(name,age,marital_status,mailid) values 
+('thanga',23,'married','gfhfgdsh@gfh.com');
+
+ERROR:  duplicate key value violates unique constraint "users_mailid_key"
+DETAIL:  Key (mailid)=(gfhfgdsh@gfh.com) already exists.
+
+insert into users(name,age,marital_status,mailid) values 
+('susp',33,'DIVORCED','hgyuqoeio@gfh.com');
+
+
+
+we can make it to LOWER(marital_status)
+
+ marital_status VARCHAR(15) check (LOWER(marital_status) in ('married','single', 'divorced','widowed')),
+
+for email - 
+
+email VARCHAR(255) NOT NULL UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+
+| Pattern             | Meaning                                                                       |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `^`                 | Start of string anchor                                                        |
+| `[A-Za-z0-9._%+-]+` | Username part: letters, numbers, dots, underscores, %, +, - (at least 1 char) |
+| `@`                 | Literal @ symbol                                                              |
+| `[A-Za-z0-9.-]+`    | Domain name: letters, numbers, dots, hyphens                                  |
+| `\.`                | Literal dot (escaped with backslash)                                          |
+| `[A-Za-z]{2,}`      | Top-level domain: 2+ letters (com, io, berlin)                                |
+| `$`                 | End of string anchor                                                          |
+
+
+--- updated ----
+
+
+create table users (
+    user_id serial PRIMARY KEY,
+    name TEXT NOT NULL check (length(name) >=2),
+    age smallint check (age<99),
+    marital_status VARCHAR(15) check (marital_status in ('married','single', 'DIVORCED','WIDOWED')),
+    mailid VARCHAR(255) NOT NULL UNIQUE CHECK (mailid ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    userstatus VARCHAR(10) DEFAULT 'active'
+);
+
+
+
+German database administrators will ask you in interviews: 
+"How do you handle schema migrations on tables with 10 million rows?"
+The answer they're looking for: 
+"I validate data first, use ALGORITHM=INPLACE (MySQL) or CONCURRENTLY (PostgreSQL) to avoid locks, and have a rollback script."
+
+The answer you currently have: "I just ALTER and hope it doesn't break production."
+
+creating table orders : 
+
+create table orders (
+    order_id serial PRIMARY KEY,
+    user_id integer not null,
+    order_quantity integer not null check (order_quantity > 0),
+    product_id integer not null,
+    ordered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+create table producuct (
+    product_id SERIAL PRIMARY key,
+    name text not null,
+    price NUMERIC not null check(price > 0),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+insert into producuct(name, price) values
+('coffee mug',34.87),
+('key chain',1.45),
+('hip flask',15.67);
+
+insert into orders(user_id, order_quantity, product_id) 
+values
+(1,35,3),
+(1,20,4),
+(3,12,1);
+
+ALTER TABLE orders
+ADD CONSTRAINT order_product_fl
+FOREIGN KEY (product_id) REFERENCES producuct(product_id);
+
+insert into orders(user_id, order_quantity, product_id) 
+values
+(1,10,5);
+
+de_bootcamp=# 
+de_bootcamp=# insert into orders(user_id, order_quantity, product_id) 
+values
+(1,10,5);
+ERROR:  insert or update on table "orders" violates foreign key constraint "order_product_fl"
+DETAIL:  Key (product_id)=(5) is not present in table "producuct".
+
+
+
+
+///// ON DELETE RESTRICT vs ON DELETE CASCADE /////
+
+ON DELETE RESTRICT -> Guardian
+
+ON DELETE CASCADE  -> Automatic Cleaner
+
+
+
+create table product (
+    id SERIAL PRIMARY key,
+    name text not null check (length(name) > 2),
+    price NUMERIC(3,2) not null check(price > 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    order_quantity INTEGER NOT NULL CHECK (order_quantity > 0),
+    ordered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+
+    CONSTRAINT orders_user_fk 
+        FOREIGN KEY (user_id) REFERENCES users(user_id) 
+        ON DELETE RESTRICT,  -- Can't delete users with orders
+    
+    CONSTRAINT orders_product_fk 
+        FOREIGN KEY (product_id) REFERENCES product(id) 
+        ON DELETE RESTRICT  -- Can't delete products with orders history
+);
+
+
+insert into product(name,price) values
+('masoon',9.75),
+('mug',9.15),
+('watch',9.97),
+('peto',7.19);
+
+
+de_bootcamp=# select * from product;
+ id |  name  | price |         created_at         
+----+--------+-------+----------------------------
+  1 | masoon |  9.75 | 2026-01-29 09:48:09.036085
+  2 | mug    |  9.15 | 2026-01-29 09:48:09.036085
+  3 | watch  |  9.97 | 2026-01-29 09:48:09.036085
+  4 | peto   |  7.19 | 2026-01-29 09:48:09.036085
+(4 rows)
+
+insert into orders(user_id,product_id,order_quantity) values
+(1,2,45),
+(1,3,78),
+(1,4,98),
+(1,3,1);
+
+
+de_bootcamp=# delete from users where user_id = 1;
+ERROR:  update or delete on table "users" violates foreign key constraint "orders_user_fk" on table "orders"
+DETAIL:  Key (user_id)=(1) is still referenced from table "orders".
+de_bootcamp=# 
+
+
+insert into orders(user_id,product_id,order_quantity) values
+(1,5,4);
+
+de_bootcamp=# 
+insert into orders(user_id,product_id,order_quantity) values
+(1,5,4);
+ERROR:  insert or update on table "orders" violates foreign key constraint "orders_product_fk"
+DETAIL:  Key (product_id)=(5) is not present in table "product".
+de_bootcamp=# 
+
+
