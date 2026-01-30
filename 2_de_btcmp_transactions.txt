@@ -1,0 +1,35 @@
+Implicit transactions
+
+
+docker exec -it postgres psql -U thanga -d coffee_chain
+
+coffee_chain=# select id,stock_quantity from catalog where id = 1 or id = 3;
+ id | stock_quantity 
+----+----------------
+  3 |             30
+  1 |             50
+(2 rows)
+
+coffee_chain=# 
+
+
+UPDATE product.catalog
+SET stock_quantity = stock_quantity + 100
+WHERE id = 1 or id =3;
+
+coffee_chain=# select id,stock_quantity from catalog where id = 1 or id = 3;
+ id | stock_quantity 
+----+----------------
+  3 |            130
+  1 |            150
+(2 rows)
+
+coffee_chain=# 
+
+
+Explicit Transactions 
+
+Begins with BEGIN statement, we can run multiple queries.
+
+either complete all the queries or roll back.
+

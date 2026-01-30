@@ -1,9 +1,27 @@
-\l   – databases
-\dn  – schemas
-\dt  – tables
-\d+  – tables with size + description
-\d t – columns, types, indexes for table t
+-- LIST TABLES
+\dt                    -- All tables in current schema
+\dt *.*                -- All tables in all schemas
+\dt public.*           -- Tables in public schema only
 
+-- DESCRIBE STRUCTURE
+\d orders              -- Full structure: columns, types, constraints, indexes
+\d users               -- Same for users table
+\d+ orders             -- Extended info: storage, compression, description
+
+-- DATABASE NAVIGATION
+\l                     -- List ALL databases on server
+\c de_bootcamp         -- Connect/switch to database
+\conninfo              -- Show current connection details (user, host, db)
+
+-- SCHEMA & PERMISSIONS  
+\dn                    -- List schemas (public, pg_catalog, etc.)
+\du                    -- List users/roles
+\dp orders             -- Show table permissions (who can read/write)
+
+-- UTILITY
+\timing on             -- Show query execution time (CRITICAL for learning)
+\?                     -- Help for ALL psql commands (overwhelming, use sparingly)
+\q                     -- Quit psql (or Ctrl+D)
 
 to list the databases -
 
