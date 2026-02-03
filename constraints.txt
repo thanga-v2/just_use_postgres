@@ -279,11 +279,11 @@ ALTER TABLE customer
 ADD CONSTRAINT enquir_customer_enquiry_id_fk
 FOREIGN KEY (enquiryid) REFERENCES enqiury(enquiryid);
 
-insert into customer(customerid, enquiryid, name)
+insert into customer(enquiryid, name)
 values 
-(12,5,'jhkhjhj'),
-(13,6,'jio'),
-(1,5,'gh...........');
+(5,'jhkhjhj'),
+(6,'jio'),
+(5,'gh...........');
 
 
 select * from customer where enquiryid=5;
