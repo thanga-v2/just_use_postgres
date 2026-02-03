@@ -252,3 +252,38 @@ coffee_chain=# select * from customer.accounts;
 coffee_chain=# 
 
 
+
+create table enqiury(
+enquiryid serial primary key,
+name varchar(255) check (length(name) >=2),
+date timestamp,
+about text check(length(about) >= 10),
+email varchar(255) check(length(email) >= 10) NOT NULL
+);
+
+
+insert into enqiury(name, about, email) values 
+('test user', 'about LC nad BG','user1@gm.com'),
+('analog', 'about LC nad BG for rolex','rolex@gm.com'),
+('pix', 'about shipments and inqueries', 'straydgs@gn.com'),
+('voye', 'about port shipments and inqueries', 'straydgs@hgjh.com'),
+('pisd', 'about currency inqueries and stable coin details', 'hpqoyrt@hj.com');
+
+create table customer(
+customerid SERIAL PRIMARY key,
+enquiryid integer,
+name varchar(255));
+
+
+ALTER TABLE customer
+ADD CONSTRAINT enquir_customer_enquiry_id_fk
+FOREIGN KEY (enquiryid) REFERENCES enqiury(enquiryid);
+
+insert into customer(customerid, enquiryid, name)
+values 
+(12,5,'jhkhjhj'),
+(13,6,'jio'),
+(1,5,'gh...........');
+
+
+select * from customer where enquiryid=5;
